@@ -8,14 +8,13 @@ pipeline {
      string(name:'TAG_NAME',defaultValue: '',description:'')
   }
   environment {
-    DOCKER_REPO_CREDENTIAL_ID = 'docker-repo-id'
-    GIT_CREDENTIAL_ID = 'git-id'
+    DOCKER_REPO_CREDENTIAL_ID = 'harbor-id'
+    GIT_CREDENTIAL_ID = 'github-id'
     KUBECONFIG_CREDENTIAL_ID = 'demo-kubeconfig'
-    DOCKER_REPO_NAMESPACE = 'kubesphere'
-    GIT_ACCOUNT = 'kubesphere'
+    DOCKER_REPO_NAMESPACE = 'mcloud-dev'
+    GIT_ACCOUNT = 'wzjgo'
     APP_NAME = 'devops-go-sample'
-    DOCKER_REPO_ADDRESS = 'harbor.devops.kubesphere.local:30280'
-    GIT_ADDRESS = 'gitlab.devops.kubesphere.local:30080'
+    DOCKER_REPO_ADDRESS = 'core.harbor.domain:30515'
   }
   stages {
     stage('checkout scm') {
@@ -26,7 +25,7 @@ pipeline {
     stage('unit test') {
       steps {
         container('go') {
-          sh 'CGO_ENABLED=0 go test ./...'
+          sh 'go test ./...'
         }
 
       }
@@ -72,12 +71,6 @@ pipeline {
       steps {
          container('go'){
          input(id: 'release-image-with-tag', message: 'release image with tag?')
-           withCredentials([usernamePassword(credentialsId: "$GIT_CREDENTIAL_ID", passwordVariable: 'GIT_PASSWORD', usernameVariable: 'GIT_USERNAME')]) {
-             sh 'git config --global user.email "kubesphere@yunify.com" '
-             sh 'git config --global user.name "kubesphere" '
-             sh "git tag -a ${params.TAG_NAME} -m \"${params.TAG_NAME}\" "
-             sh 'git push http://$GIT_USERNAME:$GIT_PASSWORD@$GIT_ADDRESS/$GIT_ACCOUNT/$APP_NAME.git --tags'
-           }
          sh "docker tag  $DOCKER_REPO_ADDRESS/$DOCKER_REPO_NAMESPACE/$APP_NAME:SNAPSHOT-$BRANCH_NAME-$BUILD_NUMBER $DOCKER_REPO_ADDRESS/$DOCKER_REPO_NAMESPACE/$APP_NAME:${params.TAG_NAME}"
          sh "docker push  $DOCKER_REPO_ADDRESS/$DOCKER_REPO_NAMESPACE/$APP_NAME:${params.TAG_NAME}"
          }

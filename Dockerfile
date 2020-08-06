@@ -1,14 +1,14 @@
-FROM harbor.devops.kubesphere.local:30280/library/golang:1.11.3-alpine3.8 as builder
+FROM golang:1.11.3-alpine3.8 as builder
 
 WORKDIR /go/src/kubesphere.io/devops-go-sample/
 
 COPY . .
 
-RUN go build -o hello-world
+RUN go build -o main
 
-FROM harbor.devops.kubesphere.local:30280/library/alpine:latest
+FROM alpine:latest
 
-COPY --from=builder /go/src/kubesphere.io/devops-go-sample/hello-world /usr/local/bin/
+COPY --from=builder /go/src/kubesphere.io/devops-go-sample/main /usr/local/bin/
 
 EXPOSE 8080
-CMD ["/usr/local/bin/hello-world"]
+CMD ["/usr/local/bin/main"]
